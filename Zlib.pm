@@ -1,6 +1,6 @@
 # IO::Zlib.pm
 #
-# Copyright (c) 1998-2001 Tom Hughes <tom@compton.nu>.
+# Copyright (c) 1998-2004 Tom Hughes <tom@compton.nu>.
 # All rights reserved. This program is free software; you can redistribute
 # it and/or modify it under the same terms as Perl itself.
 
@@ -285,7 +285,7 @@ Support for external gzip added by Jarkko Hietaniemi E<lt>F<jhi@iki.fi>E<gt>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 1998-2001 Tom Hughes E<lt>F<tom@compton.nu>E<gt>.
+Copyright (c) 1998-2004 Tom Hughes E<lt>F<tom@compton.nu>E<gt>.
 All rights reserved. This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
