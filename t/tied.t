@@ -13,7 +13,7 @@ sub ok
 
 $name="test.gz";
 
-print "1..9\n";
+print "1..11\n";
 
 $hello = <<EOM ;
 hello world
@@ -21,15 +21,17 @@ this is a test
 EOM
 
 ok(1, tie *OUT, "IO::Zlib", $name, "wb");
-ok(2, print OUT $hello);
-ok(3, untie *OUT);
+ok(2, printf OUT "%s - %d\n", "hello", 123);
+ok(3, print OUT $hello);
+ok(4, untie *OUT);
 
-ok(4, tie *IN, "IO::Zlib", $name, "rb");
-ok(5, !tied(*IN)->eof());
-ok(6, read(IN, $uncomp, 1024) == length($hello));
-ok(7, tied(*IN)->eof());
-ok(8, untie *IN);
+ok(5, tie *IN, "IO::Zlib", $name, "rb");
+ok(6, !eof IN);
+ok(7, <IN> eq "hello - 123\n");
+ok(8, read(IN, $uncomp, 1024) == length($hello));
+ok(9, eof IN);
+ok(10, untie *IN);
 
 unlink($name);
 
-ok(9, $hello eq $uncomp);
+ok(11, $hello eq $uncomp);

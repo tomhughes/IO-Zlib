@@ -1,6 +1,6 @@
 # IO::Zlib.pm
 #
-# Copyright (c) 1998 Tom Hughes <tom@compton.demon.co.uk>.
+# Copyright (c) 1998-2001 Tom Hughes <tom@compton.nu>.
 # All rights reserved. This program is free software; you can redistribute
 # it and/or modify it under the same terms as Perl itself.
 
@@ -17,7 +17,7 @@ With any version of Perl 5 you can use the basic OO interface:
     use IO::Zlib;
 
     $fh = new IO::Zlib;
-    if ($fh->open("file.gz", "wb")) {
+    if ($fh->open("file.gz", "rb")) {
         print <$fh>;
         $fh->close;
     }
@@ -145,51 +145,49 @@ L<Compress::Zlib>
 
 =head1 HISTORY
 
-Created by Tom Hughes E<lt>F<tom@compton.demon.co.uk>E<gt>.
+Created by Tom Hughes E<lt>F<tom@compton.nu>E<gt>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 1998 Tom Hughes E<lt>F<tom@compton.demon.co.uk>E<gt>.
+Copyright (c) 1998-2001 Tom Hughes E<lt>F<tom@compton.nu>E<gt>.
 All rights reserved. This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
 =cut
 
-require 5.000;
+require 5.004;
 
 use strict;
-use vars qw($VERSION);
+use vars qw($VERSION $AUTOLOAD @ISA);
+
 use Carp;
 use Compress::Zlib;
+use Symbol;
+use Tie::Handle;
 
-$VERSION = "0.02";
+$VERSION = "1.00";
 
-sub new
+@ISA = qw(Tie::Handle);
+
+sub TIEHANDLE
 {
-    my($self) = bless {}, shift;
+    my $class = shift;
+    my @args = @_;
 
-    if (@_)
-    {
-	$self->open(@_) or return undef;
-    }
+    my $self = bless {}, $class;
 
-    return $self;
+    return $self->OPEN(@args);
 }
 
 sub DESTROY
 {
-    my($self) = @_;
-
-    untie $self;
-
-    $self->close();
-
-    return;
 }
 
-sub open
+sub OPEN
 {
-    my($self,$filename,$mode) = @_;
+    my $self = shift;
+    my $filename = shift;
+    my $mode = shift;
 
     croak "open() needs a filename" unless defined($filename);
 
@@ -199,20 +197,13 @@ sub open
     return defined($self->{'file'}) ? $self : undef;
 }
 
-sub opened
+sub CLOSE
 {
-    my($self) = @_;
-
-    return defined($self->{'file'});
-}
-
-sub close
-{
-    my($self) = @_;
+    my $self = shift;
 
     return undef unless defined($self->{'file'});
 
-    my($status) = $self->{'file'}->gzclose();
+    my $status = $self->{'file'}->gzclose();
 
     delete $self->{'file'};
     delete $self->{'eof'};
@@ -220,98 +211,110 @@ sub close
     return ($status == 0) ? 1 : undef;
 }
 
-sub getc
+sub READ
 {
-    my($self) = @_;
-    my($character);
+    my $self = shift;
+    my $bufref = \$_[0];
+    my $nbytes = $_[1];
+    my $offset = $_[2];
 
-    my($status) = $self->{'file'}->gzread($character, 1);
+    croak "NBYTES must be specified" unless defined($nbytes);
+    croak "OFFSET not supported" if defined($offset) && $offset != 0;
 
-    $self->{'eof'} = 1 if $status == 0;
+    return 0 if $self->{'eof'};
 
-    return ($status > 0 ) ? $character : "";
+    my $bytesread = $self->{'file'}->gzread($$bufref,$nbytes);
+
+    return undef if $bytesread < 0;
+
+    $self->{'eof'} = 1 if $bytesread < $nbytes;
+
+    return $bytesread;
 }
 
-sub getline
+sub READLINE
 {
-    my($self) = @_;
-    my($line);
+    my $self = shift;
 
-    my($status) = $self->{'file'}->gzreadline($line);
+    my $line;
 
-    $self->{'eof'} = 1 if $status == 0;
+    return () if $self->{'file'}->gzreadline($line) <= 0;
 
-    return ($status > 0) ? $line : undef;
-}
+    return $line unless wantarray;
 
-sub getlines
-{
-    my($self) = @_;
+    my @lines = $line;
 
-    croak("Can't call getlines in scalar context!") unless wantarray;
-
-    my ($line, @lines);
-
-    push @lines, $line while (defined($line = $self->getline));
+    while ($self->{'file'}->gzreadline($line) > 0)
+    {
+        push @lines, $line;
+    }
 
     return @lines;
 }
 
-sub print
+sub WRITE
 {
-    my($self) = shift;
+    my $self = shift;
+    my $buf = shift;
+    my $length = shift;
+    my $offset = shift;
 
-    my($status) = $self->{'file'}->gzwrite(join('', @_));
+    croak "bad LENGTH" unless $length <= length($buf);
+    croak "OFFSET not supported" if defined($offset) && $offset != 0;
 
-    return ($status > 0) ? 1 : 0;
+    return $self->{'file'}->gzwrite(substr($buf,0,$length));
 }
 
-sub read
+sub EOF
 {
-    my($self,$buf,$nbytes,$offset) = @_;
-
-    croak "NBYTES must be specified" unless defined($nbytes);
-    croak "OFFSET not yet supported" if defined($offset);
-
-    my($status) = $self->{'file'}->gzread($_[1],$nbytes);
-
-    $self->{'eof'} = 1 if $status >= 0 && $status < $nbytes;
-
-    return ($status < 0) ? undef : $status;
-}
-
-sub eof
-{
-    my($self) = @_;
+    my $self = shift;
 
     return $self->{'eof'};
 }
 
-sub seek
+sub new
 {
-    croak "seek not yet supported";
+    my $class = shift;
+    my @args = @_;
+
+    my $self = gensym();
+
+    tie *{$self}, $class, @args;
+
+    return tied(${$self}) ? bless $self, $class : undef;
 }
 
-sub tell
+sub getline
 {
-    croak "tell not yet supported";
+    my $self = shift;
+
+    return scalar tied(*{$self})->READLINE();
 }
 
-sub setpos
+sub getlines
 {
-    croak "setpos not yet supported";
+    my $self = shift;
+
+    croak unless wantarray;
+
+    return tied(*{$self})->READLINE();
 }
 
-sub getpos
+sub opened
 {
-    croak "getpos not yet supported";
+    my $self = shift;
+
+    return defined tied(*{$self})->{'file'};
 }
 
-sub TIEHANDLE { shift->new(@_) }
-sub GETC      { shift->getc(@_) }
-sub PRINT     { shift->print(@_) }
-sub PRINTF    { shift->print(sprintf(shift, @_)) }
-sub READ      { shift->read(@_) }
-sub READLINE  { wantarray ? shift->getlines(@_) : shift->getline(@_) }
+sub AUTOLOAD
+{
+    my $self = shift;
+
+    $AUTOLOAD =~ s/.*:://;
+    $AUTOLOAD =~ tr/a-z/A-Z/;
+
+    return tied(*{$self})->$AUTOLOAD(@_);
+}
 
 1;

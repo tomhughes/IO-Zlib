@@ -1,4 +1,17 @@
-1998-06-28  Tom Hughes  <tom@gosford.local>
+2001-01-27  Tom Hughes  <tom@compton.nu>
+
+	* Zlib.pm
+	  Change version number to 1.00.
+
+	* t/basic.t
+	* t/tied.t
+	  Added extra tests and improved some existing ones.
+
+	* Zlib.pm
+	  Reworked along the lines described in "Object Orientated Perl" to
+	  make the tie support work properly.
+
+1998-06-28  Tom Hughes  <tom@compton.nu>
 
 	* Zlib.pm
 	  Change version number to 0.02.

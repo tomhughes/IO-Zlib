@@ -1,4 +1,4 @@
-This is an alpha release of the IO::Zlib module package for perl5.
+This is a beta release of the IO::Zlib module package for perl5.
 
 This modules provides an IO:: style interface to the Compress::Zlib
 package. The main advantage is that you can use an IO::Zlib object
@@ -12,9 +12,9 @@ After unpacking the distribution, to install this module type
         make test
         make install
 
-Please report any bugs/suggestions to <tom@compton.demon.co.uk>.
+Please report any bugs/suggestions to <tom@compton.nu>.
 
-Copyright (c) Tom Hughes <tom@compton.demon.co.uk>.
+Copyright (c) Tom Hughes <tom@compton.nu>.
 
 All rights reserved. This program is free software; you can
 redistribute it and/or modify it under the same terms as Perl itself.
