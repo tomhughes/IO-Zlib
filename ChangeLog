@@ -1,5 +1,8 @@
 2004-08-15  Tom Hughes  <tom@compton.nu>
 
+	* Zlib.pm
+	  Change version number 1.02.
+
 	* MANIFEST
 	  Added SIGNATURE to manifest.
 
