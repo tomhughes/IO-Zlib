@@ -1,0 +1,8 @@
+1998-06-28  Tom Hughes  <tom@gosford.local>
+
+	* Zlib.pm
+	  Change version number to 0.02.
+
+	* Zlib.pm
+	  Quote all hash dereferences to avoid bareword resolution
+	  warnings for eof.
