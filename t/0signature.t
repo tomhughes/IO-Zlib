@@ -5,7 +5,7 @@ print "1..1\n";
 if (!eval { require Module::Signature; 1 })
 {
     print "ok 1 # skip ",
-          "Next time around, consider install Module::Signature, ",
+          "Next time around, consider installing Module::Signature, ",
           "so you can verify the integrity of this distribution.\n";
 } 
 elsif (!eval { require Socket; Socket::inet_aton('pgp.mit.edu') })

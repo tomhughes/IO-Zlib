@@ -1,3 +1,14 @@
+2004-08-28  Jarkko Hietaniemi  <jhi@iki.fi>
+
+	* t/0signature.t:
+	  Add -ing.
+
+	* t/external.t:
+	  The skip didn't really skip.
+
+	* t/uncomp1.t, t/uncomp2.t:
+	  Make more portable by using binmode().
+
 2004-08-22  Tom Hughes <tom@compton.nu>
 
 	* Zlib.pm

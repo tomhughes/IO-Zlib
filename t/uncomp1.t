@@ -21,6 +21,7 @@ EOM
 $name = "test";
 
 if (open(FH, ">$name")) {
+    binmode FH;
     print FH $hello;
     close FH;
 } else {

@@ -6,10 +6,11 @@
 
 my $gzip = "/usr/bin/gzip";
 
-print "1..0 # Skip: no $gzip\n"
-    unless -x $gzip &&
-           ":$ENV{PATH}:" =~ m!:/usr/bin:! &&
-           -d "/usr/bin" && -x "/usr/bin";
+unless( -x $gzip &&
+        ":$ENV{PATH}:" =~ m!:/usr/bin:! &&
+        -d "/usr/bin" && -x "/usr/bin") {
+    print "1..0 # Skip: no $gzip\n";
+}
 
 sub ok
 {
@@ -81,8 +82,8 @@ ok(13,
 eval 'IO::Zlib->new("foo", "xyz")';
 ok(14, $@ =~ /^IO::Zlib::gzopen_external: mode 'xyz' is illegal /);
 
-# The following is a copy of the basic.t, shifted up by 14,
-# now we should be using the external gzip.
+# The following is a copy of the basic.t, shifted up by 14 tests,
+# the difference being that now we should be using the external gzip.
 
 $name="test.gz";
 

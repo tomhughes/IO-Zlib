@@ -1,4 +1,4 @@
-require IO::Zlib;
+require IO::Zlib; # uncomp2.t is like uncomp1.t but without 'use'
 
 sub ok
 {
@@ -21,6 +21,7 @@ EOM
 $name = "test";
 
 if (open(FH, ">$name")) {
+    binmode FH;
     print FH $hello;
     close FH;
 } else {
