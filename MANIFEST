@@ -1,8 +1,9 @@
+ChangeLog
 MANIFEST
+META.yml
 Makefile.PL
 README
 SIGNATURE
-ChangeLog
 Zlib.pm
 t/0signature.t
 t/basic.t

@@ -3,6 +3,9 @@
 	* Zlib.pm
 	  Change version number 1.02.
 
+	* META.yml
+	  Added a package description file.
+
 	* t/0signature.t
 	  Added signature test.
 
