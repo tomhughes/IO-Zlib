@@ -1,3 +1,11 @@
+2004-08-17  Jarkko Hietaniemi <jhi@iki.fi>
+	
+	* Zlib.pm
+	  Fix the case of trying to read ungzipped data.
+
+	* Zlib.pm
+	  Fix the case of not going through import().
+
 2004-08-15  Tom Hughes  <tom@compton.nu>
 
 	* Zlib.pm

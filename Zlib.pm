@@ -297,8 +297,10 @@ use strict;
 use vars qw($VERSION $AUTOLOAD @ISA);
 
 use Carp;
+use Fcntl qw(SEEK_SET);
 
 my $has_Compress_Zlib;
+my $aliased;
 
 sub has_Compress_Zlib {
     $has_Compress_Zlib;
@@ -335,45 +337,50 @@ sub gzip_used {
     $gzip_used;
 }
 
-sub import {
-    shift;
-    my $self = "IO::Zlib::import";
+sub can_gunzip {
+    $has_Compress_Zlib || $gzip_external;
+}
+
+sub _import {
+    my $import = shift;
     while (@_) {
 	if ($_[0] eq ':gzip_external') {
 	    shift;
 	    if (@_) {
 		$gzip_external = shift;
 	    } else {
-		croak "$self: ':gzip_external' requires an argument";
+		croak "$import: ':gzip_external' requires an argument";
 	    }
 	}
 	elsif ($_[0] eq ':gzip_read_open') {
 	    shift;
 	    if (@_) {
 		$gzip_read_open = shift;
-		croak "$self: ':gzip_read_open' '$gzip_read_open' is illegal"
+		croak "$import: ':gzip_read_open' '$gzip_read_open' is illegal"
 		    unless $gzip_read_open =~ /^.+%s.+\|\s*$/;
 	    } else {
-		croak "$self: ':gzip_read_open' requires an argument";
+		croak "$import: ':gzip_read_open' requires an argument";
 	    }
 	}
 	elsif ($_[0] eq ':gzip_write_open') {
 	    shift;
 	    if (@_) {
 		$gzip_write_open = shift;
-		croak "$self: ':gzip_write_open' '$gzip_read_open' is illegal"
+		croak "$import: ':gzip_write_open' '$gzip_read_open' is illegal"
 		    unless $gzip_write_open =~ /^\s*\|.+%s.*$/;
 	    } else {
-		croak "$self: ':gzip_write_open' requires an argument";
+		croak "$import: ':gzip_write_open' requires an argument";
 	    }
 	}
 	else {
 	    last;
 	}
     }
-    if (@_) {
-	croak "$self: '@_' is illegal";
-    }
+    return @_;
+}
+
+sub _alias {
+    my $import = shift;
     if ((!$has_Compress_Zlib && !defined $gzip_external) || $gzip_external) {
 	# The undef *gzopen is really needed only during
 	# testing where we eval several 'use IO::Zlib's.
@@ -385,13 +392,25 @@ sub import {
         *IO::Handle::gzclose    = \&gzclose_external;
 	$gzip_used = 1;
     } else {
-	croak "$self: no Compress::Zlib and no external gzip"
+	croak "$import: no Compress::Zlib and no external gzip"
 	    unless $has_Compress_Zlib;
         *gzopen     = \&Compress::Zlib::gzopen;
         *gzread     = \&Compress::Zlib::gzread;
         *gzwrite    = \&Compress::Zlib::gzwrite;
         *gzreadline = \&Compress::Zlib::gzreadline;
     }
+    $aliased = 1;
+}
+
+sub import {
+    shift;
+    my $import = "IO::Zlib::import";
+    if (@_) {
+	if (_import($import, @_)) {
+	    croak "$import: '@_' is illegal";
+	}
+    }
+    _alias($import);
 }
 
 @ISA = qw(Tie::Handle);
@@ -504,6 +523,8 @@ sub new
     my $class = shift;
     my @args = @_;
 
+    _alias("new", @_) unless $aliased; # Some call new IO::Zlib directly...
+
     my $self = gensym();
 
     tie *{$self}, $class, @args;
@@ -550,15 +571,31 @@ sub gzopen_external {
     require IO::Handle;
     my $fh = IO::Handle->new();
     if ($mode =~ /r/) {
-	# A race condition exists between the -e and the open,
-	# but the alternative would be to capture the stderr of
+	# Because someone will try to read ungzipped files
+	# with this we peek and verify the signature.  Yes,
+	# this means that we open the file twice (if it is
+	# gzipped).
+	# Plenty of race conditions exist in this code, but
+	# the alternative would be to capture the stderr of
 	# gzip and parse it, which would be a portability nightmare.
-	my $ropen = sprintf $gzip_read_open, $filename;
-	if (-e $filename && open($fh, $ropen)) {
+	if (-e $filename && open($fh, $filename)) {
 	    binmode $fh;
+	    my $sig;
+	    my $rdb = read($fh, $sig, 2);
+	    if ($rdb == 2 && $sig eq "\x1F\x8B") {
+		my $ropen = sprintf $gzip_read_open, $filename;
+		if (open($fh, $ropen)) {
+		    binmode $fh;
+		    return $fh;
+		} else {
+		    return undef;
+		}
+	    }
+	    seek($fh, 0, SEEK_SET) or
+		die "IO::Zlib: open('$filename', 'r'): seek: $!";
 	    return $fh;
 	} else {
-	    undef $fh;
+	    return undef;
 	}
     } elsif ($mode =~ /w/) {
 	my $level = '';
@@ -575,12 +612,12 @@ sub gzopen_external {
 	    binmode $fh;
 	    return $fh;
 	} else {
-	    undef $fh;
+	    return undef;
 	}
     } else {
 	croak "IO::Zlib::gzopen_external: mode '$mode' is illegal";
     }
-    return $fh;
+    return undef;
 }
 
 sub gzread_external {
