@@ -1,3 +1,17 @@
+2004-04-17  Jarkko Hietaniemi  <jhi@iki.fi>
+
+	* Zlib.pm
+	  Added support for external gzip.
+
+	* t/external.t
+	  Testing for external gzip.
+
+	* t/import.t
+	  Testing for other importing.
+
+	* t/getline.t
+	  Test error when getlines called in scalar context.
+
 2001-03-24  Tom Hughes  <tom@compton.nu>
 
 	* Zlib.pm

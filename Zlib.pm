@@ -6,6 +6,8 @@
 
 package IO::Zlib;
 
+$VERSION = "1.02";
+
 =head1 NAME
 
 IO::Zlib - IO:: style interface to L<Compress::Zlib>
@@ -51,6 +53,19 @@ C<IO::Zlib> provides an IO:: style interface to L<Compress::Zlib> and
 hence to gzip/zlib compressed files. It provides many of the same methods
 as the L<IO::Handle> interface.
 
+Starting from IO::Zlib version 1.02, IO::Zlib can also use an
+external F<gzip> command.  The default behaviour is to try to use
+an external F<gzip> if no C<Compress::Zlib> can be loaded, unless
+explicitly disabled by
+
+    use IO::Zlib qw(:gzip_external 0);
+
+If explicitly enabled by
+
+    use IO::Zlib qw(:gzip_external 1);
+
+then the external F<gzip> is used B<instead> of C<Compress::Zlib>.
+
 =head1 CONSTRUCTOR
 
 =over 4
@@ -63,7 +78,7 @@ Otherwise, it is returned to the caller.
 
 =back
 
-=head1 METHODS
+=head1 OBJECT METHODS
 
 =over 4
 
@@ -136,6 +151,125 @@ Not yet supported.
 
 =back
 
+=head1 USING THE EXTERNAL GZIP
+
+If the external F<gzip> is used, the following C<open>s are used:
+
+    open(FH, "gzip -dc $filename |")  # for read opens
+    open(FH, " | gzip > $filename")   # for write opens
+
+You can modify the 'commands' for example to hardwire
+an absolute path by e.g.
+
+    use IO::Zlib ':gzip_read_open'  => '/some/where/gunzip -c %s |';
+    use IO::Zlib ':gzip_write_open' => '| /some/where/gzip.exe > %s';
+
+The C<%s> is expanded to be the filename (C<sprintf> is used, so be
+careful to escape any other C<%> signs).  The 'commands' are checked
+for sanity - they must contain the C<%s>, and the read open must end
+with the pipe sign, and the write open must begin with the pipe sign.
+
+=head1 CLASS METHODS
+
+=over 4
+
+=item has_Compress_Zlib
+
+Returns true if C<Compress::Zlib> is available.  Note that this does
+not mean that C<Compress::Zlib> is being used: see L</gzip_external>
+and L<gzip_used>.
+
+=item gzip_external
+
+Undef if an external F<gzip> B<can> be used if C<Compress::Zlib> is
+not available (see L</has_Compress_Zlib>), true if an external F<gzip>
+is explicitly used, false if an external F<gzip> must not be used.
+See L</gzip_used>.
+
+=item gzip_used
+
+True if an external F<gzip> is being used, false if not.
+
+=item gzip_read_open
+
+Return the 'command' being used for opening a file for reading using an
+external F<gzip>.
+
+=item gzip_write_open
+
+Return the 'command' being used for opening a file for writing using an
+external F<gzip>.
+
+=back
+
+=head1 DIAGNOSTICS
+
+=over 4
+
+=item IO::Zlib::getlines: must be called in list context
+
+If you want read lines, you must read in list context.
+
+=item IO::Zlib::gzopen_external: mode '...' is illegal
+
+Use only modes 'rb' or 'wb' or /wb[1-9]/.
+
+=item IO::Zlib::import: '...' is illegal
+
+The known import symbols are the C<:gzip_external>, C<:gzip_read_open>,
+and C<:gzip_write_open>.  Anything else is not recognized.
+
+=item IO::Zlib::import: ':gzip_external' requires an argument
+
+The C<:gzip_external> requires one boolean argument.
+
+=item IO::Zlib::import: 'gzip_read_open' requires an argument
+
+The C<:gzip_external> requires one string argument.
+
+=item IO::Zlib::import: 'gzip_read' '...' is illegal
+
+The C<:gzip_read_open> argument must end with the pipe sign (|)
+and have the C<%s> for the filename.  See L</"USING THE EXTERNAL GZIP">.
+
+=item IO::Zlib::import: 'gzip_write_open' requires an argument
+
+The C<:gzip_external> requires one string argument.
+
+=item IO::Zlib::import: 'gzip_write_open' '...' is illegal
+
+The C<:gzip_write_open> argument must begin with the pipe sign (|)
+and have the C<%s> for the filename.  An output redirect (>) is also
+often a good idea, depending on your operating system shell syntax.
+See L</"USING THE EXTERNAL GZIP">.
+
+=item IO::Zlib::import: no Compress::Zlib and no external gzip
+
+Given that we failed to load C<Compress::Zlib> and that the use of
+ an external F<gzip> was disabled, IO::Zlib has not much chance of working.
+
+=item IO::Zlib::open: needs a filename
+
+No filename, no open.
+
+=item IO::Zlib::READ: NBYTES must be specified
+
+We must know how much to read.
+
+=item IO::Zlib::READ: OFFSET is not supported
+
+Offsets of gzipped streams are not supported.
+
+=item IO::Zlib::WRITE: too long LENGTH
+
+The LENGTH must be less than or equal to the buffer size.
+
+=item IO::Zlib::WRITE: OFFSET is not supported
+
+Offsets of gzipped streams are not supported.
+
+=back
+
 =head1 SEE ALSO
 
 L<perlfunc>,
@@ -146,6 +280,8 @@ L<Compress::Zlib>
 =head1 HISTORY
 
 Created by Tom Hughes E<lt>F<tom@compton.nu>E<gt>.
+
+Support for external gzip added by Jarkko Hietaniemi E<lt>F<jhi@iki.fi>E<gt>.
 
 =head1 COPYRIGHT
 
@@ -161,11 +297,102 @@ use strict;
 use vars qw($VERSION $AUTOLOAD @ISA);
 
 use Carp;
-use Compress::Zlib;
+
+my $has_Compress_Zlib;
+
+sub has_Compress_Zlib {
+    $has_Compress_Zlib;
+}
+
+BEGIN {
+    eval { require Compress::Zlib };
+    $has_Compress_Zlib = $@ ? 0 : 1;
+}
+
 use Symbol;
 use Tie::Handle;
 
-$VERSION = "1.01";
+# These might use some $^O logic.
+my $gzip_read_open   = "gzip -dc %s |";
+my $gzip_write_open  = "| gzip > %s";
+
+my $gzip_external;
+my $gzip_used;
+
+sub gzip_read_open {
+    $gzip_read_open;
+}
+
+sub gzip_write_open {
+    $gzip_write_open;
+}
+
+sub gzip_external {
+    $gzip_external;
+}
+
+sub gzip_used {
+    $gzip_used;
+}
+
+sub import {
+    shift;
+    my $self = "IO::Zlib::import";
+    while (@_) {
+	if ($_[0] eq ':gzip_external') {
+	    shift;
+	    if (@_) {
+		$gzip_external = shift;
+	    } else {
+		croak "$self: ':gzip_external' requires an argument";
+	    }
+	}
+	elsif ($_[0] eq ':gzip_read_open') {
+	    shift;
+	    if (@_) {
+		$gzip_read_open = shift;
+		croak "$self: ':gzip_read_open' '$gzip_read_open' is illegal"
+		    unless $gzip_read_open =~ /^.+%s.+\|\s*$/;
+	    } else {
+		croak "$self: ':gzip_read_open' requires an argument";
+	    }
+	}
+	elsif ($_[0] eq ':gzip_write_open') {
+	    shift;
+	    if (@_) {
+		$gzip_write_open = shift;
+		croak "$self: ':gzip_write_open' '$gzip_read_open' is illegal"
+		    unless $gzip_write_open =~ /^\s*\|.+%s.*$/;
+	    } else {
+		croak "$self: ':gzip_write_open' requires an argument";
+	    }
+	}
+	else {
+	    last;
+	}
+    }
+    if (@_) {
+	croak "$self: '@_' is illegal";
+    }
+    if ((!$has_Compress_Zlib && !defined $gzip_external) || $gzip_external) {
+	# The undef *gzopen is really needed only during
+	# testing where we eval several 'use IO::Zlib's.
+	undef *gzopen;
+        *gzopen                 = \&gzopen_external;
+        *IO::Handle::gzread     = \&gzread_external;
+        *IO::Handle::gzwrite    = \&gzwrite_external;
+        *IO::Handle::gzreadline = \&gzreadline_external;
+        *IO::Handle::gzclose    = \&gzclose_external;
+	$gzip_used = 1;
+    } else {
+	croak "$self: no Compress::Zlib and no external gzip"
+	    unless $has_Compress_Zlib;
+        *gzopen     = \&Compress::Zlib::gzopen;
+        *gzread     = \&Compress::Zlib::gzread;
+        *gzwrite    = \&Compress::Zlib::gzwrite;
+        *gzreadline = \&Compress::Zlib::gzreadline;
+    }
+}
 
 @ISA = qw(Tie::Handle);
 
@@ -189,7 +416,7 @@ sub OPEN
     my $filename = shift;
     my $mode = shift;
 
-    croak "open() needs a filename" unless defined($filename);
+    croak "IO::Zlib::open: needs a filename" unless defined($filename);
 
     $self->{'file'} = gzopen($filename,$mode);
     $self->{'eof'} = 0;
@@ -218,8 +445,8 @@ sub READ
     my $nbytes = $_[1];
     my $offset = $_[2];
 
-    croak "NBYTES must be specified" unless defined($nbytes);
-    croak "OFFSET not supported" if defined($offset) && $offset != 0;
+    croak "IO::Zlib::READ: NBYTES must be specified" unless defined($nbytes);
+    croak "IO::Zlib::READ: OFFSET is not supported" if defined($offset) && $offset != 0;
 
     return 0 if $self->{'eof'};
 
@@ -259,8 +486,8 @@ sub WRITE
     my $length = shift;
     my $offset = shift;
 
-    croak "bad LENGTH" unless $length <= length($buf);
-    croak "OFFSET not supported" if defined($offset) && $offset != 0;
+    croak "IO::Zlib::WRITE: too long LENGTH" unless $length <= length($buf);
+    croak "IO::Zlib::WRITE: OFFSET not supported" if defined($offset) && $offset != 0;
 
     return $self->{'file'}->gzwrite(substr($buf,0,$length));
 }
@@ -295,7 +522,8 @@ sub getlines
 {
     my $self = shift;
 
-    croak unless wantarray;
+    croak "IO::Zlib::getlines: must be called in list context"
+	unless wantarray;
 
     return tied(*{$self})->READLINE();
 }
@@ -315,6 +543,76 @@ sub AUTOLOAD
     $AUTOLOAD =~ tr/a-z/A-Z/;
 
     return tied(*{$self})->$AUTOLOAD(@_);
+}
+
+sub gzopen_external {
+    my ($filename, $mode) = @_;
+    require IO::Handle;
+    my $fh = IO::Handle->new();
+    if ($mode =~ /r/) {
+	# A race condition exists between the -e and the open,
+	# but the alternative would be to capture the stderr of
+	# gzip and parse it, which would be a portability nightmare.
+	my $ropen = sprintf $gzip_read_open, $filename;
+	if (-e $filename && open($fh, $ropen)) {
+	    binmode $fh;
+	    return $fh;
+	} else {
+	    undef $fh;
+	}
+    } elsif ($mode =~ /w/) {
+	my $level = '';
+	$level = "-$1" if $mode =~ /([1-9])/;
+	# To maximize portability we would need to open
+	# two filehandles here, one for "| gzip $level"
+	# and another for "> $filename", and then when
+	# writing copy bytes from the first to the second.
+	# We are using IO::Handle objects for now, however,
+	# and they can only contain one stream at a time.
+	my $wopen = sprintf $gzip_write_open, $filename;
+	if (open($fh, $wopen)) {
+	    $fh->autoflush(1);
+	    binmode $fh;
+	    return $fh;
+	} else {
+	    undef $fh;
+	}
+    } else {
+	croak "IO::Zlib::gzopen_external: mode '$mode' is illegal";
+    }
+    return $fh;
+}
+
+sub gzread_external {
+    # Use read() instead of syswrite() because people may
+    # mix reads and readlines, and we don't want to mess
+    # the stdio buffering.  See also gzreadline_external()
+    # and gzwrite_external().
+    my $nread = read($_[0], $_[1], @_ == 3 ? $_[2] : 4096);
+    defined $nread ? $nread : -1;
+}
+
+sub gzwrite_external {
+    # Using syswrite() is okay (cf. gzread_external())
+    # since the bytes leave this process and buffering
+    # is therefore not an issue.
+    my $nwrote = syswrite($_[0], $_[1]);
+    defined $nwrote ? $nwrote : -1;
+}
+
+sub gzreadline_external {
+    # See the comment in gzread_external().
+    $_[1] = readline($_[0]);
+    return defined $_[1] ? length($_[1]) : -1;
+}
+
+sub gzclose_external {
+    close($_[0]);
+    # I am not entirely certain why this is needed but it seems
+    # the above close() always fails (as if the stream would have
+    # been already closed - something to do with using external
+    # processes via pipes?)
+    return 0;
 }
 
 1;

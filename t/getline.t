@@ -13,7 +13,7 @@ sub ok
 
 $name="test.gz";
 
-print "1..18\n";
+print "1..19\n";
 
 @text = (<<EOM, <<EOM, <<EOM, <<EOM) ;
 this is line 1
@@ -40,12 +40,14 @@ ok(9, !defined($file->getline()));
 ok(10, $file->close());
 
 ok(11, $file = IO::Zlib->new($name, "rb"));
-ok(12, @lines = $file->getlines());
-ok(13, @lines == @text);
-ok(14, $lines[0] eq $text[0]);
-ok(15, $lines[1] eq $text[1]);
-ok(16, $lines[2] eq $text[2]);
-ok(17, $lines[3] eq $text[3]);
-ok(18, $file->close());
+eval '$file->getlines';
+ok(12, $@ =~ /^IO::Zlib::getlines: must be called in list context /);
+ok(13, @lines = $file->getlines());
+ok(14, @lines == @text);
+ok(15, $lines[0] eq $text[0]);
+ok(16, $lines[1] eq $text[1]);
+ok(17, $lines[2] eq $text[2]);
+ok(18, $lines[3] eq $text[3]);
+ok(19, $file->close());
 
 unlink($name);
