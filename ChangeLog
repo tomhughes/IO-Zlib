@@ -1,3 +1,8 @@
+2004-08-15  Tom Hughes  <tom@compton.nu>
+
+	* MANIFEST
+	  Added SIGNATURE to manifest.
+
 2004-04-17  Jarkko Hietaniemi  <jhi@iki.fi>
 
 	* Zlib.pm
