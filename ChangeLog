@@ -1,4 +1,9 @@
-2004-08-28  Jarkko Hietaniemi  <jhi@iki.fi>
+2004-09-05  Tom Hughes <tom@compton.nu>
+
+        * Zlib.pm
+          Changed version number to 1.04.
+
+2004-08-28  Jarkko Hietaniemi <jhi@iki.fi>
 
 	* t/0signature.t:
 	  Add -ing.
@@ -12,7 +17,7 @@
 2004-08-22  Tom Hughes <tom@compton.nu>
 
 	* Zlib.pm
-	  Changed version number to 1.03
+	  Changed version number to 1.03.
 
 2004-08-17  Jarkko Hietaniemi <jhi@iki.fi>
 	
