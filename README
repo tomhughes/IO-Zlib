@@ -1,4 +1,4 @@
-This is a beta release of the IO::Zlib module package for perl5.
+This is the IO::Zlib module package for perl5.
 
 This modules provides an IO:: style interface to the Compress::Zlib
 package. The main advantage is that you can use an IO::Zlib object

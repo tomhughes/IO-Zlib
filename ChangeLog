@@ -1,3 +1,15 @@
+2001-03-24  Tom Hughes  <tom@compton.nu>
+
+	* Zlib.pm
+	  Change version number to 1.01.
+
+	* t/basic.t
+	  Added a test for creating a handle without opening it.
+
+	* Zlib.pm
+	  Don't try and do an open if we haven't been given any
+	  arguments - presumably the user will do one later on.
+
 2001-01-27  Tom Hughes  <tom@compton.nu>
 
 	* Zlib.pm

@@ -13,7 +13,7 @@ sub ok
 
 $name="test.gz";
 
-print "1..14\n";
+print "1..15\n";
 
 $hello = <<EOM ;
 hello world
@@ -26,16 +26,17 @@ ok(3, $file->opened());
 ok(4, $file->close());
 ok(5, !$file->opened());
 
-ok(6, $file = IO::Zlib->new($name, "rb"));
-ok(7, !$file->eof());
-ok(8, $file->read($uncomp, 1024) == length($hello));
-ok(9, $file->eof());
-ok(10, $file->opened());
-ok(11, $file->close());
-ok(12, !$file->opened());
+ok(6, $file = IO::Zlib->new());
+ok(7, $file->open($name, "rb"));
+ok(8, !$file->eof());
+ok(9, $file->read($uncomp, 1024) == length($hello));
+ok(10, $file->eof());
+ok(11, $file->opened());
+ok(12, $file->close());
+ok(13, !$file->opened());
 
 unlink($name);
 
-ok(13, $hello eq $uncomp);
+ok(14, $hello eq $uncomp);
 
-ok(14, !defined(IO::Zlib->new($name, "rb")));
+ok(15, !defined(IO::Zlib->new($name, "rb")));

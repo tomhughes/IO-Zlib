@@ -165,7 +165,7 @@ use Compress::Zlib;
 use Symbol;
 use Tie::Handle;
 
-$VERSION = "1.00";
+$VERSION = "1.01";
 
 @ISA = qw(Tie::Handle);
 
@@ -176,7 +176,7 @@ sub TIEHANDLE
 
     my $self = bless {}, $class;
 
-    return $self->OPEN(@args);
+    return @args ? $self->OPEN(@args) : $self;
 }
 
 sub DESTROY
