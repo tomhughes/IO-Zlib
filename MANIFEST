@@ -4,6 +4,7 @@ README
 SIGNATURE
 ChangeLog
 Zlib.pm
+t/0signature.t
 t/basic.t
 t/external.t
 t/getc.t
