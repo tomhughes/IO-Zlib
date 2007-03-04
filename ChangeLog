@@ -1,5 +1,11 @@
 2007-03-04  Tom Hughes <tom@compton.nu>
 
+	* Zlib.pm
+	  Removed internal eof flag and use gzeof instead.
+
+	* t/getline.t
+	  Added tests for the eof method while reading lines.
+
 	* t/basic.t
 	  Add test for reading at an offset.
 

@@ -385,6 +385,7 @@ sub _alias {
         *IO::Handle::gzread     = \&gzread_external;
         *IO::Handle::gzwrite    = \&gzwrite_external;
         *IO::Handle::gzreadline = \&gzreadline_external;
+        *IO::Handle::gzeof      = \&gzeof_external;
         *IO::Handle::gzclose    = \&gzclose_external;
 	$gzip_used = 1;
     } else {
@@ -394,6 +395,7 @@ sub _alias {
         *gzread     = \&Compress::Zlib::gzread;
         *gzwrite    = \&Compress::Zlib::gzwrite;
         *gzreadline = \&Compress::Zlib::gzreadline;
+        *gzeof      = \&Compress::Zlib::gzeof;
     }
     $aliased = 1;
 }
@@ -434,7 +436,6 @@ sub OPEN
     croak "IO::Zlib::open: needs a filename" unless defined($filename);
 
     $self->{'file'} = gzopen($filename,$mode);
-    $self->{'eof'} = 0;
 
     return defined($self->{'file'}) ? $self : undef;
 }
@@ -448,7 +449,6 @@ sub CLOSE
     my $status = $self->{'file'}->gzclose();
 
     delete $self->{'file'};
-    delete $self->{'eof'};
 
     return ($status == 0) ? 1 : undef;
 }
@@ -462,15 +462,11 @@ sub READ
 
     croak "IO::Zlib::READ: NBYTES must be specified" unless defined($nbytes);
 
-    return 0 if $self->{'eof'};
-
     $$bufref = "" unless defined($$bufref);
 
     my $bytesread = $self->{'file'}->gzread(substr($$bufref,$offset),$nbytes);
 
     return undef if $bytesread < 0;
-
-    $self->{'eof'} = 1 if $bytesread < $nbytes;
 
     return $bytesread;
 }
@@ -511,7 +507,7 @@ sub EOF
 {
     my $self = shift;
 
-    return $self->{'eof'};
+    return $self->{'file'}->gzeof();
 }
 
 sub new
@@ -637,6 +633,10 @@ sub gzreadline_external {
     # See the comment in gzread_external().
     $_[1] = readline($_[0]);
     return defined $_[1] ? length($_[1]) : -1;
+}
+
+sub gzeof_external {
+    return eof($_[0]);
 }
 
 sub gzclose_external {
