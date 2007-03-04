@@ -502,10 +502,9 @@ sub WRITE
     my $length = shift;
     my $offset = shift;
 
-    croak "IO::Zlib::WRITE: too long LENGTH" unless $length <= length($buf);
-    croak "IO::Zlib::WRITE: OFFSET not supported" if defined($offset) && $offset != 0;
+    croak "IO::Zlib::WRITE: too long LENGTH" unless $offset + $length <= length($buf);
 
-    return $self->{'file'}->gzwrite(substr($buf,0,$length));
+    return $self->{'file'}->gzwrite(substr($buf,$offset,$length));
 }
 
 sub EOF

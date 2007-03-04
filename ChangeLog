@@ -4,7 +4,7 @@
 	  Add test for reading at an offset.
 
 	* Zlib.pm
-	  Allow an offset to be specifed when reading.
+	  Allow an offset to be specifed when reading or writing.
 
 2004-09-05  Tom Hughes <tom@compton.nu>
 
