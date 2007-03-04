@@ -256,10 +256,6 @@ No filename, no open.
 
 We must know how much to read.
 
-=item IO::Zlib::READ: OFFSET is not supported
-
-Offsets of gzipped streams are not supported.
-
 =item IO::Zlib::WRITE: too long LENGTH
 
 The LENGTH must be less than or equal to the buffer size.
@@ -462,14 +458,15 @@ sub READ
     my $self = shift;
     my $bufref = \$_[0];
     my $nbytes = $_[1];
-    my $offset = $_[2];
+    my $offset = $_[2] || 0;
 
     croak "IO::Zlib::READ: NBYTES must be specified" unless defined($nbytes);
-    croak "IO::Zlib::READ: OFFSET is not supported" if defined($offset) && $offset != 0;
 
     return 0 if $self->{'eof'};
 
-    my $bytesread = $self->{'file'}->gzread($$bufref,$nbytes);
+    $$bufref = "" unless defined($$bufref);
+
+    my $bytesread = $self->{'file'}->gzread(substr($$bufref,$offset),$nbytes);
 
     return undef if $bytesread < 0;
 
