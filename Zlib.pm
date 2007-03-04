@@ -510,6 +510,11 @@ sub EOF
     return $self->{'file'}->gzeof();
 }
 
+sub FILENO
+{
+    return undef;
+}
+
 sub new
 {
     my $class = shift;

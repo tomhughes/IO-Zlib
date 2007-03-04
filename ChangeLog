@@ -1,6 +1,10 @@
 2007-03-04  Tom Hughes <tom@compton.nu>
 
 	* Zlib.pm
+	  Added dummy FILENO method to stop the debugger barfing
+	  when asked to dump a IO::Zlib object.
+
+	* Zlib.pm
 	  Removed internal eof flag and use gzeof instead.
 
 	* t/getline.t
