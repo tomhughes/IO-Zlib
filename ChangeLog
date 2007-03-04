@@ -1,6 +1,9 @@
 2007-03-04  Tom Hughes <tom@compton.nu>
 
 	* Zlib.pm
+	  Changed version number to 1.05.
+
+	* Zlib.pm
 	  Added dummy FILENO method to stop the debugger barfing
 	  when asked to dump a IO::Zlib object.
 
