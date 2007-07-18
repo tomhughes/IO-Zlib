@@ -1,3 +1,8 @@
+2007-07-18 Tom Hughes <tom@compton.nu>
+
+	* t/external.t
+	  Exit immediately if there is no gzip program.
+
 2007-03-04  Tom Hughes <tom@compton.nu>
 
 	* Zlib.pm
