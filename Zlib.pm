@@ -260,10 +260,6 @@ We must know how much to read.
 
 The LENGTH must be less than or equal to the buffer size.
 
-=item IO::Zlib::WRITE: OFFSET is not supported
-
-Offsets of gzipped streams are not supported.
-
 =back
 
 =head1 SEE ALSO
