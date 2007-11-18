@@ -1,6 +1,10 @@
 Sun Nov 18 17:43:49 2007  Tom Hughes  <tom@compton.nu>
 
         * Zlib.pm
+          Require perl 5.006 instead of 5.004 as Fcntl does not
+          implement SEEK_SET before then.
+
+        * Zlib.pm
           Removed "IO::Zlib::WRITE: OFFSET is not supported" error
           from documentation as it is no longer generated.
 

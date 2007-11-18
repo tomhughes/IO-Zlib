@@ -283,7 +283,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =cut
 
-require 5.004;
+require 5.006;
 
 use strict;
 use vars qw($VERSION $AUTOLOAD @ISA);
