@@ -1,5 +1,11 @@
 Sun Nov 18 17:43:49 2007  Tom Hughes  <tom@compton.nu>
 
+        * t/uncomp1.t
+        * t/uncomp2.t
+          Add the PID to the name of the temporary file used by
+          several tests to avoid clashing with the directory
+          called test in the perl source tree.
+        
         * Zlib.pm
           Require perl 5.006 instead of 5.004 as Fcntl does not
           implement SEEK_SET before then.
