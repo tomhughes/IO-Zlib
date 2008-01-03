@@ -1,5 +1,8 @@
 Thu Jan  3 18:35:44 2008  Tom Hughes  <tom@compton.nu>
 
+	* Zlib.pm
+	  Changed version number to 1.09.
+
         * Makefile.PL
           Install in the core library directory if the perl
           version is 5.9.3 or later.
