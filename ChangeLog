@@ -1,3 +1,9 @@
+Thu Jan  3 18:35:44 2008  Tom Hughes  <tom@compton.nu>
+
+        * Makefile.PL
+          Install in the core library directory if the perl
+          version is 5.9.3 or later.
+
 Sun Nov 18 17:43:49 2007  Tom Hughes  <tom@compton.nu>
 
 	* Zlib.pm
