@@ -1,6 +1,9 @@
 Tue Jul 14 22:29:01 2009  Tom Hughes  <tom@compton.nu>
 
         * Zlib.pm
+          Change version number to 1.10.
+
+        * Zlib.pm
         * Makefile.PL
           Require Compress::Zlib 2.000 or later.
 
