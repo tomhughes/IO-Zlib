@@ -1,3 +1,9 @@
+Tue Jul 14 22:29:01 2009  Tom Hughes  <tom@compton.nu>
+
+        * Zlib.pm
+        * Makefile.PL
+          Require Compress::Zlib 2.000 or later.
+
 Thu Jan  3 18:35:44 2008  Tom Hughes  <tom@compton.nu>
 
 	* Zlib.pm
