@@ -1,5 +1,8 @@
 print "1..1\n";
 
+use strict;
+use warnings;
+
 sub ok
 {
     my ($no, $ok) = @_ ;
