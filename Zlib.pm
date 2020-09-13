@@ -6,8 +6,6 @@
 
 package IO::Zlib;
 
-$VERSION = "1.10";
-
 =head1 NAME
 
 IO::Zlib - IO:: style interface to L<Compress::Zlib>
@@ -286,10 +284,12 @@ it and/or modify it under the same terms as Perl itself.
 require 5.006;
 
 use strict;
-use vars qw($VERSION $AUTOLOAD @ISA);
+use warnings;
 
 use Carp;
 use Fcntl qw(SEEK_SET);
+
+our $VERSION = "1.10";
 
 my $has_Compress_Zlib;
 my $aliased;
@@ -407,7 +407,7 @@ sub import {
     _alias($import);
 }
 
-@ISA = qw(Tie::Handle);
+our @ISA = qw(Tie::Handle);
 
 sub TIEHANDLE
 {
@@ -548,6 +548,8 @@ sub opened
 
     return defined tied(*{$self})->{'file'};
 }
+
+our $AUTOLOAD;
 
 sub AUTOLOAD
 {
