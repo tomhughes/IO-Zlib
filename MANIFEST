@@ -2,7 +2,7 @@ ChangeLog
 MANIFEST
 META.yml
 Makefile.PL
-README
+README.md
 SIGNATURE
 Zlib.pm
 t/basic.t
