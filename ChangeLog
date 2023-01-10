@@ -1,3 +1,8 @@
+Tue Jan 10 20:37:34 2023  Tom Hughes  <tom@compton.nu>
+
+        * Makefile.PL
+          Change version number to 1.14.
+
 Tue Jan 10 20:36:36 2023  Graham Knop  <haarg@haarg.org>
 
         * Makefile.PL
