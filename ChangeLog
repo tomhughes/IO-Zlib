@@ -1,3 +1,8 @@
+Mon Feb  5 22:47:05 2024  Bence Cs  <bence98@sch.bme.hu>
+
+        * Makefile.PL
+          Add LICENSE to options.
+
 Tue Jan 10 20:37:34 2023  Tom Hughes  <tom@compton.nu>
 
         * Makefile.PL
