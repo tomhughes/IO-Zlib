@@ -175,7 +175,7 @@ with the pipe sign, and the write open must begin with the pipe sign.
 
 Returns true if C<Compress::Zlib> is available.  Note that this does
 not mean that C<Compress::Zlib> is being used: see L</gzip_external>
-and L<gzip_used>.
+and L</gzip_used>.
 
 =item gzip_external
 
